@@ -1,0 +1,1366 @@
+<!DOCTYPE html>
+<html lang="ne">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <!-- PWA & Mobile Web App Meta Tags -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="MS Routine">
+    <meta name="application-name" content="MS Routine">
+    <meta name="theme-color" content="#1e1b4b">
+    <meta name="msapplication-TileColor" content="#1e1b4b">
+    <meta name="msapplication-TileImage" content="icon-192.png">
+    <meta name="msapplication-tap-highlight" content="no">
+    <meta name="description" content="मङ्गल सिंह माध्यमिक विद्यालय, केचना, मोरङ को दैनिक कक्षा कार्यतालिका, घण्टी सूचना र समय ट्र्याकर एप।">
+
+    <!-- Web App Manifest (real static file - required for reliable installability) -->
+    <link rel="manifest" href="manifest.json">
+
+    <!-- Icons (real static files - required for reliable installability) -->
+    <link rel="icon" type="image/png" sizes="64x64" href="favicon.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
+    <link rel="apple-touch-icon" sizes="192x192" href="apple-touch-icon.png">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
+
+    <title>मङ्गल सिंह मा.वि. - दैनिक कक्षा कार्यतालिका PWA एप</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Mukta & Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Mukta:wght@300;400;500;600;700;800&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Mukta', sans-serif;
+            background-color: #f1f5f9;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+
+        /* Sticky Left Column for Table on Mobile */
+        .sticky-col {
+            position: sticky;
+            left: 0;
+            z-index: 10;
+        }
+
+        /* Active Period Column Highlight */
+        .active-period-col {
+            background-color: #fef3c7 !important;
+            border-left: 2px solid #f59e0b;
+            border-right: 2px solid #f59e0b;
+        }
+
+        /* Active Period Cell Style */
+        .active-period-cell {
+            background-color: #fbbf24 !important;
+            color: #78350f !important;
+            box-shadow: inset 0 0 0 2px #d97706;
+            transform: scale(1.02);
+            transition: transform 0.2s ease, background-color 0.2s ease;
+        }
+
+        /* Highlight Selected Teacher Cells */
+        .highlighted-teacher {
+            background-color: #dbeafe !important;
+            border: 2px solid #2563eb !important;
+            color: #1e40af !important;
+            font-weight: bold;
+        }
+
+        /* Bell Animation */
+        @keyframes bellRingAnimation {
+            0% { transform: rotate(0deg); }
+            15% { transform: rotate(20deg); }
+            30% { transform: rotate(-20deg); }
+            45% { transform: rotate(14deg); }
+            60% { transform: rotate(-14deg); }
+            75% { transform: rotate(8deg); }
+            100% { transform: rotate(0deg); }
+        }
+        .bell-shake {
+            animation: bellRingAnimation 0.6s infinite ease-in-out;
+            display: inline-block;
+        }
+
+        /* Hide Scrollbars while allowing touch scroll */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+            body {
+                background: white;
+            }
+        }
+    </style>
+</head>
+<body class="text-slate-800 antialiased min-h-screen flex flex-col pb-20 md:pb-6">
+
+    <!-- App Header -->
+    <header class="bg-gradient-to-r from-indigo-950 via-blue-900 to-indigo-900 text-white shadow-md sticky top-0 z-30">
+        <div class="max-w-7xl mx-auto px-4 py-3 sm:px-6 lg:px-8 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="bg-white/10 p-2 rounded-2xl border border-white/20 backdrop-blur-md">
+                    <i class="fa-solid fa-graduation-cap text-yellow-400 text-xl sm:text-2xl"></i>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <h1 class="text-lg sm:text-2xl font-extrabold tracking-tight leading-tight">मङ्गल सिंह मा.वि. एप</h1>
+                        <span class="bg-amber-400 text-slate-950 font-black text-[10px] px-1.5 py-0.5 rounded uppercase tracking-wider hidden sm:inline-block">PWA</span>
+                    </div>
+                    <p class="text-indigo-200 text-xs sm:text-sm font-medium">सुनवर्षी-१, मोरङ | दैनिक कार्यतालिका २०८३</p>
+                </div>
+            </div>
+
+            <!-- Top Right Action Controls -->
+            <div class="flex items-center gap-2 no-print">
+                <!-- Clock Badge -->
+                <div class="bg-indigo-950/80 border border-indigo-700/60 rounded-xl px-2.5 py-1 text-center min-w-[90px]">
+                    <span class="block text-[10px] text-indigo-300 font-semibold uppercase">समय</span>
+                    <span id="liveClock" class="text-sm sm:text-base font-bold font-mono text-yellow-400">--:--:--</span>
+                </div>
+                <!-- Install App Button (Visible once beforeinstallprompt fires) -->
+                <button id="pwaInstallBtn" onclick="triggerPWAInstall()" class="hidden bg-emerald-500 hover:bg-emerald-600 text-slate-950 px-2.5 py-1.5 rounded-xl text-xs font-extrabold shadow transition flex items-center gap-1.5 border border-emerald-300">
+                    <i class="fa-solid fa-download"></i>
+                    <span class="hidden sm:inline">इन्स्टल</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Application Container -->
+    <main class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 flex-1 w-full space-y-4">
+
+        <!-- Banner for PWA Offline Ready / Installation Banner -->
+        <div id="pwaPromptBanner" class="hidden bg-indigo-900 text-white rounded-2xl p-3 sm:p-4 shadow-md border border-indigo-700 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+                <div class="bg-amber-400 text-slate-950 p-2.5 rounded-xl font-bold">
+                    <i class="fa-solid fa-mobile-screen-button text-xl"></i>
+                </div>
+                <div>
+                    <h3 class="font-bold text-sm sm:text-base">एपलाई मोबाइल वा कम्प्युटरमा इन्स्टल गर्नुहोस्!</h3>
+                    <p class="text-xs text-indigo-200">इन्टरनेट नहुँदा पनि यो एपले काम गर्दछ।</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
+                <button onclick="triggerPWAInstall()" class="bg-amber-400 hover:bg-amber-500 text-slate-950 font-extrabold px-4 py-1.5 rounded-xl text-xs shadow transition">
+                    अहिले इन्स्टल गर्नुहोस्
+                </button>
+                <button onclick="dismissPWABanner()" class="text-indigo-300 hover:text-white px-2 py-1 text-xs">
+                    पछिको लागि
+                </button>
+            </div>
+        </div>
+
+        <!-- Toast Bell Banner -->
+        <div id="bellToast" class="hidden bg-amber-500 text-slate-950 font-bold px-4 py-3 rounded-2xl shadow-lg border-2 border-amber-300 flex items-center justify-between transition duration-300">
+            <div class="flex items-center gap-3">
+                <i class="fa-solid fa-bell fa-xl bell-shake text-slate-950"></i>
+                <div>
+                    <span id="bellToastTitle" class="block text-sm sm:text-base font-extrabold">घण्टी बज्यो!</span>
+                    <span id="bellToastDesc" class="text-xs font-semibold">पिरियड परिवर्तन भएको छ।</span>
+                </div>
+            </div>
+            <button onclick="hideBellToast()" class="text-slate-900 hover:text-black font-bold text-xs bg-amber-300 px-2.5 py-1 rounded-lg">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <!-- Current Period Live Tracker Card -->
+        <div id="statusBanner" class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200 flex flex-col md:flex-row items-center justify-between gap-3">
+            <div class="flex items-center gap-3 w-full md:w-auto">
+                <div id="statusPulse" class="relative flex h-3.5 w-3.5 flex-shrink-0">
+                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span class="inline-flex rounded-full h-3.5 w-3.5 bg-emerald-500 shadow-sm"></span>
+                </div>
+                <div>
+                    <span class="text-[11px] uppercase tracking-wide font-bold text-slate-400">वर्तमान अवस्था</span>
+                    <h2 id="currentPeriodTitle" class="text-base sm:text-lg font-bold text-slate-900">लोड हुँदैछ...</h2>
+                </div>
+            </div>
+
+            <div id="periodTimerContainer" class="hidden sm:flex items-center gap-2 bg-amber-50 border border-amber-200 px-4 py-1.5 rounded-xl text-amber-900">
+                <i class="fa-regular fa-clock text-amber-600"></i>
+                <span class="text-xs font-medium">बाँकी समय:</span>
+                <span id="periodCountdown" class="font-mono font-bold text-base text-amber-700">--:--</span>
+            </div>
+        </div>
+
+        <!-- Controls, Filters, Bell Setup Section -->
+        <div id="controlSection" class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200 no-print space-y-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                
+                <!-- Class Selection -->
+                <div>
+                    <label for="classSelect" class="block text-xs font-bold text-slate-700 uppercase mb-1">
+                        <i class="fa-solid fa-filter text-indigo-600 mr-1"></i> कक्षा छान्नुहोस्:
+                    </label>
+                    <select id="classSelect" onchange="renderRoutine()" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs sm:text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none font-semibold">
+                        <option value="ALL">सबै कक्षाहरू (All Classes)</option>
+                        <option value="Nursery">Nursery</option>
+                        <option value="KG">KG</option>
+                        <option value="1">कक्षा १</option>
+                        <option value="2">कक्षा २</option>
+                        <option value="3">कक्षा ३</option>
+                        <option value="4">कक्षा ४</option>
+                        <option value="5">कक्षा ५</option>
+                        <option value="6">कक्षा ६</option>
+                        <option value="7">कक्षा ७</option>
+                        <option value="8">कक्षा ८</option>
+                        <option value="9">कक्षा ९</option>
+                        <option value="10">कक्षा १०</option>
+                    </select>
+                </div>
+
+                <!-- Teacher Selector -->
+                <div>
+                    <label for="teacherSelect" class="block text-xs font-bold text-slate-700 uppercase mb-1">
+                        <i class="fa-solid fa-user-tie text-indigo-600 mr-1"></i> शिक्षक सङ्केत हाइलाइट:
+                    </label>
+                    <select id="teacherSelect" onchange="highlightTeacher()" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs sm:text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none font-semibold">
+                        <option value="NONE">-- कुनै शिक्षक छान्नुहोस् --</option>
+                    </select>
+                </div>
+
+                <!-- Time Simulator -->
+                <div class="sm:col-span-2 md:col-span-1 bg-slate-50 p-2.5 rounded-xl border border-slate-200">
+                    <div class="flex items-center justify-between mb-1">
+                        <span class="text-xs font-bold text-slate-700 uppercase">
+                            <i class="fa-solid fa-sliders text-indigo-600 mr-1"></i> समय सिमुलेटर:
+                        </span>
+                        <button id="resetSimBtn" onclick="toggleSimMode(false)" class="text-[11px] text-indigo-600 hover:underline font-bold hidden">
+                            वास्तविक समयमा फर्किनुहोस्
+                        </button>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <input id="timeSlider" type="range" min="600" max="960" step="5" value="600" oninput="updateSimulatedTime(this.value)" class="w-full h-2 bg-slate-300 rounded-lg appearance-none cursor-pointer accent-indigo-600">
+                        <span id="sliderTimeDisplay" class="text-xs font-mono font-bold bg-indigo-100 text-indigo-900 px-2 py-0.5 rounded min-w-[50px] text-center">10:00</span>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Bell & Notification Control Panel -->
+            <div class="pt-3 border-t border-slate-200 flex flex-wrap items-center justify-between gap-2">
+                <div class="flex flex-wrap items-center gap-2">
+                    <button id="audioToggleBtn" onclick="toggleAudioMute()" class="bg-amber-500 hover:bg-amber-600 text-slate-900 px-3 py-1.5 rounded-xl text-xs font-bold shadow transition flex items-center gap-1.5 border border-amber-300">
+                        <i id="audioIcon" class="fa-solid fa-volume-high"></i>
+                        <span id="audioText">घण्टी ध्वनी: सुचारु</span>
+                    </button>
+
+                    <button id="notifyToggleBtn" onclick="toggleBackgroundNotifications()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-xl text-xs font-bold shadow transition flex items-center gap-1.5 border border-indigo-400">
+                        <i id="notifyIcon" class="fa-solid fa-bell-concierge"></i>
+                        <span id="notifyText">पृष्ठभूमि सूचना: निष्कृय</span>
+                    </button>
+
+                    <label class="inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-950 cursor-pointer bg-indigo-50 px-2.5 py-1.5 rounded-xl border border-indigo-200">
+                        <input type="checkbox" id="preBellCheck" onchange="togglePreBellOption(this.checked)" class="rounded text-indigo-600 focus:ring-indigo-500">
+                        <span>२ मिनेट अगावै पूर्व-सूचना (Pre-Bell)</span>
+                    </label>
+
+                    <!-- Background SW Active Status Indicator Badge -->
+                    <span id="swStatusBadge" class="hidden text-[11px] font-bold text-emerald-700 bg-emerald-100 border border-emerald-300 px-2.5 py-1.5 rounded-xl flex items-center gap-1">
+                        <i class="fa-solid fa-circle-check text-emerald-600 animate-pulse"></i>
+                        <span>पृष्ठभूमि घण्टी सक्रिय</span>
+                    </span>
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <button onclick="testBackgroundNotificationAlert()" class="bg-purple-600 hover:bg-purple-700 text-white px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition shadow">
+                        <i class="fa-solid fa-paper-plane"></i> सुचना परीक्षण
+                    </button>
+                    <button onclick="window.print()" class="bg-slate-700 hover:bg-slate-800 text-white px-3 py-1.5 rounded-xl text-xs font-bold shadow flex items-center gap-1.5">
+                        <i class="fa-solid fa-print"></i> प्रिन्ट
+                    </button>
+                </div>
+            </div>
+
+            <!-- Manual Bell Test Buttons Toolbar -->
+            <div class="pt-2 border-t border-slate-100">
+                <span class="block text-[11px] font-bold text-slate-500 uppercase mb-1.5">
+                    <i class="fa-solid fa-vial text-amber-500 mr-1"></i> म्यानुअल घण्टी ध्वनी परीक्षण (Test Bell Rings):
+                </span>
+                <div class="flex flex-wrap gap-1 text-[11px]">
+                    <button onclick="testBellTrigger('continuous', 'प्रार्थना सभा (१०:०० AM)')" class="bg-sky-100 hover:bg-sky-200 text-sky-900 border border-sky-300 px-2 py-1 rounded-lg font-bold">
+                        प्रार्थना सभा
+                    </button>
+                    <button onclick="testBellTrigger(1, '१ औँ पिरियड')" class="bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300 px-2 py-1 rounded-lg font-bold">
+                        १ घण्टी (P1)
+                    </button>
+                    <button onclick="testBellTrigger(2, '२ औँ पिरियड')" class="bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300 px-2 py-1 rounded-lg font-bold">
+                        २ घण्टी (P2)
+                    </button>
+                    <button onclick="testBellTrigger(3, '३ औँ पिरियड')" class="bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300 px-2 py-1 rounded-lg font-bold">
+                        ३ घण्टी (P3)
+                    </button>
+                    <button onclick="testBellTrigger(4, '४ औँ पिरियड')" class="bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300 px-2 py-1 rounded-lg font-bold">
+                        ४ घण्टी (P4)
+                    </button>
+                    <button onclick="testBellTrigger('continuous', 'टिफिन खाजा समय')" class="bg-red-100 hover:bg-red-200 text-red-900 border border-red-300 px-2 py-1 rounded-lg font-bold">
+                        टिफिन ब्रेक (लगातार)
+                    </button>
+                    <button onclick="testBellTrigger(5, '५ औँ पिरियड')" class="bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300 px-2 py-1 rounded-lg font-bold">
+                        ५ घण्टी (P5)
+                    </button>
+                    <button onclick="testBellTrigger(6, '६ औँ पिरियड')" class="bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300 px-2 py-1 rounded-lg font-bold">
+                        ६ घण्टी (P6)
+                    </button>
+                    <button onclick="testBellTrigger(7, '७ औँ पिरियड')" class="bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300 px-2 py-1 rounded-lg font-bold">
+                        ७ घण्टी (P7)
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Daily Class Routine Table Container -->
+        <div id="routineTableContainer" class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="p-3 bg-slate-50 border-b border-slate-200 flex justify-between items-center text-xs text-slate-500">
+                <span><i class="fa-solid fa-info-circle text-indigo-500 mr-1"></i> शिक्षकको कोड थिचेर उहाँको रुटिन हेर्न सकिन्छ।</span>
+                <span class="font-semibold text-slate-700">लागू मिति: २०८३-०४-१३</span>
+            </div>
+
+            <div class="overflow-x-auto no-scrollbar">
+                <table class="w-full text-center border-collapse text-xs sm:text-sm">
+                    <thead>
+                        <tr class="bg-indigo-950 text-white text-[11px] sm:text-xs uppercase font-bold tracking-wider">
+                            <th class="py-3 px-2 border-b border-r border-indigo-900 w-16 sticky-col bg-indigo-950">कक्षा</th>
+                            <th id="th-assembly" class="py-3 px-2 border-b border-r border-indigo-900 bg-sky-900/70 min-w-[85px]">
+                                प्रार्थना सभा<br><span class="text-[10px] font-normal text-sky-200">10:00 - 10:15</span>
+                            </th>
+                            <th id="th-p1" class="py-3 px-2 border-b border-r border-indigo-900 min-w-[100px]">
+                                १ औँ पिरियड<br><span class="text-[10px] font-normal text-indigo-300">10:15 - 11:00</span>
+                            </th>
+                            <th id="th-p2" class="py-3 px-2 border-b border-r border-indigo-900 min-w-[100px]">
+                                २ औँ पिरियड<br><span class="text-[10px] font-normal text-indigo-300">11:00 - 11:45</span>
+                            </th>
+                            <th id="th-p3" class="py-3 px-2 border-b border-r border-indigo-900 min-w-[100px]">
+                                ३ औँ पिरियड<br><span class="text-[10px] font-normal text-indigo-300">11:45 - 12:30</span>
+                            </th>
+                            <th id="th-p4" class="py-3 px-2 border-b border-r border-indigo-900 min-w-[100px]">
+                                ४ औँ पिरियड<br><span class="text-[10px] font-normal text-indigo-300">12:30 - 13:15</span>
+                            </th>
+                            <th id="th-tiffin" class="py-3 px-2 border-b border-r border-indigo-900 bg-amber-900/70 min-w-[85px]">
+                                टिफिन खाजा<br><span class="text-[10px] font-normal text-amber-200">13:15 - 14:00</span>
+                            </th>
+                            <th id="th-p5" class="py-3 px-2 border-b border-r border-indigo-900 min-w-[100px]">
+                                ५ औँ पिरियड<br><span class="text-[10px] font-normal text-indigo-300">14:00 - 14:40</span>
+                            </th>
+                            <th id="th-p6" class="py-3 px-2 border-b border-r border-indigo-900 min-w-[100px]">
+                                ६ औँ पिरियड<br><span class="text-[10px] font-normal text-indigo-300">14:40 - 15:20</span>
+                            </th>
+                            <th id="th-p7" class="py-3 px-2 border-b border-indigo-900 min-w-[100px]">
+                                ७ औँ पिरियड<br><span class="text-[10px] font-normal text-indigo-300">15:20 - 16:00</span>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody id="routineTbody" class="divide-y divide-slate-200 font-medium">
+                        <!-- Dynamic routine data rows -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Teacher Code Directory Badges -->
+        <div id="teacherBadgesCard" class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200">
+            <h3 class="text-xs sm:text-sm font-bold text-slate-900 mb-2 flex items-center gap-2">
+                <i class="fa-solid fa-users text-indigo-600"></i> शिक्षक सङ्केत सूची (Teacher Codes)
+            </h3>
+            <div id="teacherBadgesContainer" class="flex flex-wrap gap-1.5 text-xs">
+                <!-- Dynamic badges generated here -->
+            </div>
+        </div>
+
+        <!-- Custom Notification Alert Modal (No dynamic alert()!) -->
+        <div id="customModal" class="hidden fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4">
+            <div class="bg-white rounded-3xl p-5 max-w-sm w-full shadow-2xl space-y-3 border border-slate-200 text-center">
+                <div id="customModalIcon" class="text-amber-500 text-3xl">
+                    <i class="fa-solid fa-circle-info"></i>
+                </div>
+                <h3 id="customModalTitle" class="text-lg font-bold text-slate-900">सूचना</h3>
+                <p id="customModalMessage" class="text-xs sm:text-sm text-slate-600 leading-relaxed"></p>
+                <button onclick="closeCustomModal()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 rounded-xl text-xs sm:text-sm shadow">
+                    ठीक छ (OK)
+                </button>
+            </div>
+        </div>
+
+        <!-- PWA Mobile Guide Modal / Help -->
+        <div id="pwaHelpModal" class="hidden fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4">
+            <div class="bg-white rounded-3xl p-5 max-w-md w-full shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto no-scrollbar">
+                <div class="flex items-center justify-between border-b pb-3">
+                    <h3 class="text-base sm:text-lg font-bold text-slate-900 flex items-center gap-2">
+                        <i class="fa-solid fa-mobile-screen-button text-emerald-600"></i> 'Add to Home Screen' नदेखिएमा के गर्ने?
+                    </h3>
+                    <button onclick="closePWAHelpModal()" class="text-slate-400 hover:text-slate-700">
+                        <i class="fa-solid fa-xmark text-xl"></i>
+                    </button>
+                </div>
+                
+                <!-- Troubleshooting Banner -->
+                <div class="bg-amber-50 border border-amber-200 rounded-2xl p-3 text-xs text-amber-900 space-y-1.5">
+                    <div class="font-extrabold flex items-center gap-1.5 text-amber-950">
+                        <i class="fa-solid fa-circle-question text-amber-600 text-sm"></i>
+                        <span>३ थोप्ला (⋮) मा अप्सन नदेखिनुका कारण र समाधान:</span>
+                    </div>
+                    <p class="text-[11px] leading-relaxed">
+                        यदि तपाईँले म्यासेन्जर वा फेसबुकभित्र लिङ्क खोल्नुभएको छ, वा iPhone प्रयोग गर्दै हुनुहुन्छ भने क्रोमको ३ थोप्लामा 'Add to Home Screen' देखिँदैन।
+                    </p>
+                </div>
+
+                <div class="text-xs sm:text-sm text-slate-600 space-y-3">
+                    <div class="bg-indigo-50/80 p-3 rounded-2xl border border-indigo-100">
+                        <span class="font-bold text-indigo-950 block mb-1 flex items-center gap-1.5">
+                            <span class="bg-indigo-600 text-white rounded-full w-5 h-5 inline-flex items-center justify-center text-[10px]">१</span>
+                            फेसबुक/म्यासेन्जरबाट खोल्नुभएको भए:
+                        </span>
+                        <p class="text-xs leading-relaxed text-slate-700">
+                            माथिल्लो दायाँ कुनामा रहेको <b>३ थोप्ला (⋮)</b> मा थिची <b>'Open in Chrome'</b> (वा Open in Browser) छान्नुहोस्। त्यसपछि क्रोममा खुलेपछि मात्र 'Add to Home screen' वा 'Install App' देखिनेछ।
+                        </p>
+                    </div>
+
+                    <div class="bg-indigo-50/80 p-3 rounded-2xl border border-indigo-100">
+                        <span class="font-bold text-indigo-950 block mb-1 flex items-center gap-1.5">
+                            <span class="bg-indigo-600 text-white rounded-full w-5 h-5 inline-flex items-center justify-center text-[10px]">२</span>
+                            iPhone / iPad (iOS) मा:
+                        </span>
+                        <p class="text-xs leading-relaxed text-slate-700">
+                            iPhone को Chrome मा ३ थोप्लाभित्र यो अप्सन हुँदैन। यस लिङ्कलाई <b>Safari ब्राउजर</b>मा खोल्नुहोस् र तल रहेको <b>Share बटन (<i class="fa-solid fa-share-from-square text-indigo-600"></i>)</b> थिचेर <b>'Add to Home Screen'</b> छान्नुहोस्।
+                        </p>
+                    </div>
+
+                    <div class="bg-indigo-50/80 p-3 rounded-2xl border border-indigo-100">
+                        <span class="font-bold text-indigo-950 block mb-1 flex items-center gap-1.5">
+                            <span class="bg-indigo-600 text-white rounded-full w-5 h-5 inline-flex items-center justify-center text-[10px]">३</span>
+                            एप पहिले नै इन्स्टल भइसकेको भए:
+                        </span>
+                        <p class="text-xs leading-relaxed text-slate-700">
+                            यदि एप पहिले नै मोबाइलमा इन्स्टल भइसकेको छ भने Chrome ले पुनः इन्स्टल अप्सन देखाउँदैन। मोबाइलको एप लिष्ट (Home screen) मा <b>'MS Routine'</b> नामको एप बनिसकेको छ कि चेक गर्नुहोस्।
+                        </p>
+                    </div>
+
+                    <div class="bg-indigo-50/80 p-3 rounded-2xl border border-indigo-100">
+                        <span class="font-bold text-indigo-950 block mb-1 flex items-center gap-1.5">
+                            <span class="bg-indigo-600 text-white rounded-full w-5 h-5 inline-flex items-center justify-center text-[10px]">४</span>
+                            'Desktop Site' मोड अन छ भने:
+                        </span>
+                        <p class="text-xs leading-relaxed text-slate-700">
+                            Chrome को ३ थोप्ला थिचेर <b>'Desktop site'</b> को अगाडिको टिकमार्क (Tick) हटाइदिनुहोस्।
+                        </p>
+                    </div>
+                </div>
+
+                <button onclick="closePWAHelpModal()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 rounded-xl text-xs sm:text-sm shadow transition">
+                    बुझेँ (समस्या समाधान भयो)
+                </button>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Mobile App Bottom Navigation Bar -->
+    <nav class="fixed bottom-0 left-0 right-0 bg-indigo-950 text-indigo-200 border-t border-indigo-900 py-2 px-4 flex justify-around items-center z-40 md:hidden no-print shadow-lg">
+        <button onclick="scrollToSection('routineTableContainer')" class="flex flex-col items-center gap-0.5 text-[11px] font-semibold text-amber-400">
+            <i class="fa-solid fa-calendar-days text-base"></i>
+            <span>रुटिन</span>
+        </button>
+        <button onclick="scrollToSection('controlSection')" class="flex flex-col items-center gap-0.5 text-[11px] font-semibold hover:text-white">
+            <i class="fa-solid fa-sliders text-base"></i>
+            <span>फिल्टर</span>
+        </button>
+        <button onclick="toggleAudioMute()" class="flex flex-col items-center gap-0.5 text-[11px] font-semibold hover:text-white">
+            <i id="mobileAudioIcon" class="fa-solid fa-volume-high text-base"></i>
+            <span>घण्टी</span>
+        </button>
+        <button onclick="triggerPWAInstall()" class="flex flex-col items-center gap-0.5 text-[11px] font-semibold hover:text-white">
+            <i class="fa-solid fa-download text-base"></i>
+            <span>इन्स्टल</span>
+        </button>
+    </nav>
+
+    <!-- Footer -->
+    <footer class="bg-slate-900 text-slate-400 py-4 text-center text-xs border-t border-slate-800 no-print mt-auto">
+        <p>© २०८३ मङ्गल सिंह माध्यमिक विद्यालय, केचना, मोरङ। सर्वाधिकार सुरक्षित। (PWA Version)</p>
+    </footer>
+
+    <script>
+        // Class Daily Routine Data (Mangal Singh Secondary School 2083)
+        const routineData = [
+            {
+                class: "Nursery",
+                p1: { sub: "Nepali O", tr: "G.R" },
+                p2: { sub: "Nepali W", tr: "G.R" },
+                p3: { sub: "English O", tr: "G.R" },
+                p4: { sub: "English W", tr: "G.R" },
+                p5: { sub: "Science", tr: "G.R" },
+                p6: { sub: "Math", tr: "G.R" },
+                p7: { sub: "ECA", tr: "A.R+G.R" }
+            },
+            {
+                class: "KG",
+                p1: { sub: "Nepali O", tr: "Sandira" },
+                p2: { sub: "Nepali W", tr: "Sandira" },
+                p3: { sub: "English O", tr: "Sandira" },
+                p4: { sub: "English W", tr: "Sandira" },
+                p5: { sub: "Science", tr: "Sandira" },
+                p6: { sub: "Math", tr: "Sandira" },
+                p7: { sub: "ECA", tr: "A.R+G.R" }
+            },
+            {
+                class: "1",
+                p1: { sub: "Maths", tr: "J.R" },
+                p2: { sub: "Nepali", tr: "R.K" },
+                p3: { sub: "Science", tr: "A.P" },
+                p4: { sub: "English", tr: "A.G" },
+                p5: { sub: "Serophero", tr: "N.S" },
+                p6: { sub: "Sunawarshi", tr: "J.R" },
+                p7: { sub: "ECA", tr: "A.R+G.R" }
+            },
+            {
+                class: "2",
+                p1: { sub: "Nepali", tr: "R.K" },
+                p2: { sub: "Maths", tr: "J.R" },
+                p3: { sub: "Sunawarshi", tr: "R.K" },
+                p4: { sub: "Serophero", tr: "N.S" },
+                p5: { sub: "Science", tr: "A.P" },
+                p6: { sub: "English", tr: "A.G" },
+                p7: { sub: "ECA", tr: "A.R+G.R" }
+            },
+            {
+                class: "3",
+                p1: { sub: "English", tr: "A.G" },
+                p2: { sub: "Maths", tr: "A.P" },
+                p3: { sub: "Science", tr: "N.S" },
+                p4: { sub: "Nepali", tr: "R.K" },
+                p5: { sub: "Serophero", tr: "J.R" },
+                p6: { sub: "Sunawarshi", tr: "M.N" },
+                p7: { sub: "ECA", tr: "A.R+G.R" }
+            },
+            {
+                class: "4",
+                p1: { sub: "Maths", tr: "A.R" },
+                p2: { sub: "Science", tr: "N.S" },
+                p3: { sub: "Nepali", tr: "M.N" },
+                p4: { sub: "Sunawarshi", tr: "S.R" },
+                p5: { sub: "Social", tr: "C.G" },
+                p6: { sub: "English", tr: "A.P" },
+                p7: { sub: "Health", tr: "A.G" }
+            },
+            {
+                class: "5",
+                p1: { sub: "Maths", tr: "S.T" },
+                p2: { sub: "Nepali", tr: "M.N" },
+                p3: { sub: "Health", tr: "A.G" },
+                p4: { sub: "Science", tr: "A.R" },
+                p5: { sub: "English", tr: "S.M" },
+                p6: { sub: "Sunawarshi", tr: "S.R" },
+                p7: { sub: "Social", tr: "N.S" }
+            },
+            {
+                class: "6",
+                p1: { sub: "Social", tr: "A.P" },
+                p2: { sub: "Science", tr: "S.T" },
+                p3: { sub: "Sunawarshi", tr: "S.R" },
+                p4: { sub: "Nepali", tr: "C.G" },
+                p5: { sub: "English", tr: "B.R" },
+                p6: { sub: "Health", tr: "S.M" },
+                p7: { sub: "Maths", tr: "B.S" }
+            },
+            {
+                class: "7",
+                p1: { sub: "Social", tr: "C.G" },
+                p2: { sub: "Health", tr: "S.R" },
+                p3: { sub: "English", tr: "B.R" },
+                p4: { sub: "Sunawarshi", tr: "M.N" },
+                p5: { sub: "Maths", tr: "B.S" },
+                p6: { sub: "Science", tr: "S.T" },
+                p7: { sub: "Nepali", tr: "J.B" }
+            },
+            {
+                class: "8",
+                p1: { sub: "Social", tr: "J.T" },
+                p2: { sub: "English", tr: "B.R" },
+                p3: { sub: "Nepali", tr: "J.B" },
+                p4: { sub: "Science", tr: "S.P" },
+                p5: { sub: "Health", tr: "A.R" },
+                p6: { sub: "Sunawarshi", tr: "C.G" },
+                p7: { sub: "Maths", tr: "S.T" }
+            },
+            {
+                class: "9",
+                p1: { sub: "English", tr: "S.M" },
+                p2: { sub: "Maths", tr: "B.S" },
+                p3: { sub: "Science", tr: "S.T" },
+                p4: { sub: "Economics", tr: "J.T" },
+                p5: { sub: "Social", tr: "J.T" },
+                p6: { sub: "Nepali", tr: "J.B" },
+                p7: { sub: "Education", tr: "S.R" }
+            },
+            {
+                class: "10",
+                p1: { sub: "Maths", tr: "B.S" },
+                p2: { sub: "Nepali", tr: "J.B" },
+                p3: { sub: "Social", tr: "S.L" },
+                p4: { sub: "English", tr: "S.M" },
+                p5: { sub: "Science", tr: "S.P" },
+                p6: { sub: "Economics", tr: "J.T" },
+                p7: { sub: "Education", tr: "B.R" }
+            }
+        ];
+
+        const timePeriods = [
+            { id: "assembly", name: "प्रार्थना सभा (Assembly)", start: 10 * 60 + 0, end: 10 * 60 + 15, bellCount: "continuous" },
+            { id: "p1", name: "१ औँ पिरियड", start: 10 * 60 + 15, end: 11 * 60 + 0, bellCount: 1 },
+            { id: "p2", name: "२ औँ पिरियड", start: 11 * 60 + 0, end: 11 * 60 + 45, bellCount: 2 },
+            { id: "p3", name: "३ औँ पिरियड", start: 11 * 60 + 45, end: 12 * 60 + 30, bellCount: 3 },
+            { id: "p4", name: "४ औँ पिरियड", start: 12 * 60 + 30, end: 13 * 60 + 15, bellCount: 4 },
+            { id: "tiffin", name: "टिफिन खाजा समय", start: 13 * 60 + 15, end: 14 * 60 + 0, bellCount: "continuous" },
+            { id: "p5", name: "५ औँ पिरियड", start: 14 * 60 + 0, end: 14 * 60 + 40, bellCount: 5 },
+            { id: "p6", name: "६ औँ पिरियड", start: 14 * 60 + 40, end: 15 * 60 + 20, bellCount: 6 },
+            { id: "p7", name: "७ औँ पिरियड", start: 15 * 60 + 20, end: 16 * 60 + 0, bellCount: 7 }
+        ];
+
+        let isSimulationMode = false;
+        let simulatedMinutes = 10 * 60 + 0;
+        let selectedTeacher = "NONE";
+        let lastActivePeriodId = null;
+
+        // पृष्ठभूमि सूचना सेटिङ localStorage मा सुरक्षित राख्ने ताकि एप बन्द/रिफ्रेस
+        // भए पनि, वा फोन रिस्टार्ट भए पछि पनि, प्रयोगकर्ताले आफैं "निष्क्रिय" नथिचेसम्म
+        // यो सेटिङ सक्रिय नै रहोस्।
+        const BG_NOTIFY_STORAGE_KEY = "msRoutineBgNotifyEnabled";
+        const PRE_BELL_STORAGE_KEY = "msRoutinePreBellEnabled";
+
+        let isBackgroundNotifyEnabled = localStorage.getItem(BG_NOTIFY_STORAGE_KEY) === "true";
+        let isPreBellEnabled = localStorage.getItem(PRE_BELL_STORAGE_KEY) === "true";
+        let preBellFiredPeriods = new Set();
+
+        let audioCtx = null;
+        let isAudioMuted = false;
+        let lastRungPeriodId = null;
+
+        let deferredPWAInstallPrompt = null;
+        let wakeLock = null;
+
+        // ============ PWA: Standalone Detection ============
+        function isRunningStandalone() {
+            return window.matchMedia('(display-mode: standalone)').matches ||
+                   window.navigator.standalone === true;
+        }
+
+        // ============ PWA: Service Worker Registration (real file) ============
+        function registerServiceWorker() {
+            if (!('serviceWorker' in navigator)) return;
+
+            navigator.serviceWorker.register('service-worker.js')
+                .then((reg) => {
+                    console.log('PWA Service Worker registered:', reg.scope);
+
+                    // नयाँ भर्सन उपलब्ध भएमा स्वतः लागू गर्ने
+                    reg.addEventListener('updatefound', () => {
+                        const newWorker = reg.installing;
+                        if (!newWorker) return;
+                        newWorker.addEventListener('statechange', () => {
+                            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                newWorker.postMessage({ type: 'SKIP_WAITING' });
+                            }
+                        });
+                    });
+
+                    // Service Worker तयार भएपछि हालको schedule पठाउने
+                    navigator.serviceWorker.ready.then(() => {
+                        sendScheduleToServiceWorker();
+                    });
+                })
+                .catch((err) => console.log('SW Reg Error:', err));
+
+            // नयाँ Service Worker सक्रिय भएपछि पेज एकपटक ताजा गर्ने
+            let refreshing = false;
+            navigator.serviceWorker.addEventListener('controllerchange', () => {
+                if (refreshing) return;
+                refreshing = true;
+                window.location.reload();
+            });
+
+            // Service Worker ले पठाएको Bell Trigger म्यासेज सुन्ने
+            navigator.serviceWorker.addEventListener('message', (event) => {
+                if (event.data && event.data.type === 'TRIGGER_BELL') {
+                    triggerBellAudio(event.data.bellCount);
+                    showBellToast('🔔 ' + event.data.title, 'समयतालिका अनुसार घण्टी बजाइयो।');
+                }
+            });
+        }
+
+        // हालको schedule र notification toggle Service Worker लाई पठाउने
+        function sendScheduleToServiceWorker() {
+            if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+                navigator.serviceWorker.controller.postMessage({
+                    type: 'SYNC_SCHEDULE',
+                    periods: timePeriods,
+                    notifyEnabled: isBackgroundNotifyEnabled,
+                    preBellEnabled: isPreBellEnabled
+                });
+            }
+        }
+
+        // Periodic Background Sync (best-effort) दर्ता गर्ने — एप पूर्ण रूपमा बन्द
+        // भएको बेला पनि ब्राउजरले बेला-बेलामा Service Worker लाई ब्युँझाओस् भनेर।
+        // यो सुविधा सबै ब्राउजरमा उपलब्ध छैन (मुख्यतया installed PWA + Chromium मा
+        // मात्र), त्यसैले feature-detect गरेर, नभए चुपचाप छोडिदिने।
+        async function registerPeriodicBellSync() {
+            if (!isBackgroundNotifyEnabled) return;
+            try {
+                if ('serviceWorker' in navigator && 'periodicSync' in (await navigator.serviceWorker.ready)) {
+                    const status = await navigator.permissions.query({ name: 'periodic-background-sync' });
+                    if (status.state === 'granted') {
+                        const reg = await navigator.serviceWorker.ready;
+                        await reg.periodicSync.register('bell-heartbeat', {
+                            minInterval: 15 * 60 * 1000 // १५ मिनेट (ब्राउजरले नै वास्तविक अन्तराल तय गर्छ)
+                        });
+                    }
+                }
+            } catch (err) {
+                console.log('Periodic background sync unavailable:', err);
+            }
+
+            try {
+                if ('serviceWorker' in navigator && 'SyncManager' in window) {
+                    const reg = await navigator.serviceWorker.ready;
+                    await reg.sync.register('bell-check');
+                }
+            } catch (err) {
+                console.log('One-off background sync unavailable:', err);
+            }
+        }
+
+        // पृष्ठभूमि घण्टी टाइमर निरन्तर चलिरहोस् भन्नका लागि Wake Lock अनुरोध
+        async function requestWakeLock() {
+            try {
+                if ('wakeLock' in navigator && isBackgroundNotifyEnabled) {
+                    wakeLock = await navigator.wakeLock.request('screen');
+                }
+            } catch (err) {
+                console.log('WakeLock Note:', err);
+            }
+        }
+
+        // ============ PWA Install Flow ============
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPWAInstallPrompt = e;
+            const pwaBtn = document.getElementById('pwaInstallBtn');
+            const pwaBanner = document.getElementById('pwaPromptBanner');
+            if (!isRunningStandalone()) {
+                if (pwaBtn) pwaBtn.classList.remove('hidden');
+                if (pwaBanner) pwaBanner.classList.remove('hidden');
+            }
+        });
+
+        window.addEventListener('appinstalled', () => {
+            deferredPWAInstallPrompt = null;
+            const pwaBtn = document.getElementById('pwaInstallBtn');
+            if (pwaBtn) pwaBtn.classList.add('hidden');
+            dismissPWABanner();
+            showCustomModal("इन्स्टल सफल भयो!", "एप सफलतापूर्वक इन्स्टल भयो। अब सिधै होम स्क्रिनबाट खोल्न सक्नुहुन्छ।");
+        });
+
+        function triggerPWAInstall() {
+            if (deferredPWAInstallPrompt) {
+                deferredPWAInstallPrompt.prompt();
+                deferredPWAInstallPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') {
+                        dismissPWABanner();
+                        const pwaBtn = document.getElementById('pwaInstallBtn');
+                        if (pwaBtn) pwaBtn.classList.add('hidden');
+                    }
+                    deferredPWAInstallPrompt = null;
+                });
+            } else {
+                openPWAHelpModal();
+            }
+        }
+
+        function dismissPWABanner() {
+            const pwaBanner = document.getElementById('pwaPromptBanner');
+            if (pwaBanner) pwaBanner.classList.add('hidden');
+        }
+
+        function openPWAHelpModal() {
+            document.getElementById('pwaHelpModal').classList.remove('hidden');
+        }
+
+        function closePWAHelpModal() {
+            document.getElementById('pwaHelpModal').classList.add('hidden');
+        }
+
+        function showCustomModal(title, message, iconClass = "fa-solid fa-circle-info text-indigo-600") {
+            document.getElementById('customModalTitle').textContent = title;
+            document.getElementById('customModalMessage').textContent = message;
+            document.getElementById('customModalIcon').innerHTML = `<i class="${iconClass}"></i>`;
+            document.getElementById('customModal').classList.remove('hidden');
+        }
+
+        function closeCustomModal() {
+            document.getElementById('customModal').classList.add('hidden');
+        }
+
+        function scrollToSection(id) {
+            const el = document.getElementById(id);
+            if (el) {
+                el.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+
+        function getAudioContext() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            return audioCtx;
+        }
+
+        function triggerVibration() {
+            if ('vibrate' in navigator) {
+                try {
+                    navigator.vibrate([300, 150, 300, 150, 400]);
+                } catch(e) { console.log(e); }
+            }
+        }
+
+        function playSingleBellStrike(startTime) {
+            const ctx = getAudioContext();
+            if (!ctx) return;
+
+            const freqs = [850, 1270, 2040, 2980];
+            const gains = [0.6, 0.35, 0.18, 0.08];
+
+            freqs.forEach((freq, idx) => {
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(freq, startTime);
+
+                gain.gain.setValueAtTime(gains[idx], startTime);
+                gain.gain.exponentialRampToValueAtTime(0.0001, startTime + 1.25);
+
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+
+                osc.start(startTime);
+                osc.stop(startTime + 1.3);
+            });
+        }
+
+        function playContinuousElectricBell(durationSec) {
+            const ctx = getAudioContext();
+            if (!ctx) return;
+
+            const startTime = ctx.currentTime;
+            const strikeRate = 18;
+            const totalStrikes = Math.floor(durationSec * strikeRate);
+
+            for (let i = 0; i < totalStrikes; i++) {
+                const t = startTime + (i / strikeRate);
+                
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(1150 + (i % 2 === 0 ? 35 : 0), t);
+
+                gain.gain.setValueAtTime(0.35, t);
+                gain.gain.exponentialRampToValueAtTime(0.001, t + 0.08);
+
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+
+                osc.start(t);
+                osc.stop(t + 0.09);
+            }
+        }
+
+        function triggerBellAudio(countOrType) {
+            triggerVibration();
+            if (isAudioMuted) return;
+            const ctx = getAudioContext();
+            if (!ctx) return;
+
+            if (countOrType === 'continuous') {
+                playContinuousElectricBell(4.0);
+            } else if (typeof countOrType === 'number' && countOrType > 0) {
+                const now = ctx.currentTime;
+                const interval = 0.85;
+                for (let i = 0; i < countOrType; i++) {
+                    playSingleBellStrike(now + (i * interval));
+                }
+            }
+        }
+
+        function getCurrentMinutes() {
+            if (isSimulationMode) {
+                return simulatedMinutes;
+            }
+            const now = new Date();
+            return now.getHours() * 60 + now.getMinutes();
+        }
+
+        function getActivePeriod(currentMins) {
+            return timePeriods.find(p => currentMins >= p.start && currentMins < p.end) || null;
+        }
+
+        function toggleBackgroundNotifications() {
+            if (!("Notification" in window)) {
+                showCustomModal("अनुमति छैन", "तपाईँको ब्राउजरमा प्रणाली सूचना (System Notification) सपोर्ट छैन।", "fa-solid fa-triangle-exclamation text-amber-500");
+                return;
+            }
+
+            if (Notification.permission === "granted") {
+                isBackgroundNotifyEnabled = !isBackgroundNotifyEnabled;
+                localStorage.setItem(BG_NOTIFY_STORAGE_KEY, String(isBackgroundNotifyEnabled));
+                updateNotifyButtonUI();
+                sendScheduleToServiceWorker();
+                registerPeriodicBellSync();
+                if (isBackgroundNotifyEnabled) {
+                    requestWakeLock();
+                    sendSystemNotification("पृष्ठभूमि सूचना सुचारु भयो!", "एप बन्द वा पृष्ठभुमिमा हुँदा पनि तोकिएको समयमा घण्टी बज्नेछ र म्यासेज आउनेछ — तपाईंले आफैं निष्क्रिय नगरेसम्म यो सधैं चलिरहन्छ।");
+                }
+            } else if (Notification.permission !== "denied") {
+                Notification.requestPermission().then(permission => {
+                    if (permission === "granted") {
+                        isBackgroundNotifyEnabled = true;
+                        localStorage.setItem(BG_NOTIFY_STORAGE_KEY, "true");
+                        updateNotifyButtonUI();
+                        sendScheduleToServiceWorker();
+                        requestWakeLock();
+                        registerPeriodicBellSync();
+                        sendSystemNotification("पृष्ठभूमि सूचना सुचारु भयो!", "शिक्षकहरूका लागि स्वचालित घण्टी प्रणाली तयार छ। तपाईंले आफैं निष्क्रिय नगरेसम्म यो सधैं चलिरहन्छ।");
+                    } else {
+                        showCustomModal("अनुमति अस्वीकार", "प्रणाली सूचनाको अनुमति अस्वीकार गरियो।", "fa-solid fa-bell-slash text-red-500");
+                    }
+                });
+            } else {
+                openPWAHelpModal();
+            }
+        }
+
+        function updateNotifyButtonUI() {
+            const btn = document.getElementById("notifyToggleBtn");
+            const icon = document.getElementById("notifyIcon");
+            const text = document.getElementById("notifyText");
+            const swBadge = document.getElementById("swStatusBadge");
+
+            if (isBackgroundNotifyEnabled) {
+                btn.className = "bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-xl text-xs font-bold shadow transition flex items-center gap-1.5 border border-emerald-400";
+                icon.className = "fa-solid fa-bell-circle-check";
+                text.textContent = "पृष्ठभूमि सूचना: सक्रिय";
+                if (swBadge) swBadge.classList.remove("hidden");
+            } else {
+                btn.className = "bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-xl text-xs font-bold shadow transition flex items-center gap-1.5 border border-indigo-400";
+                icon.className = "fa-solid fa-bell-concierge";
+                text.textContent = "पृष्ठभूमि सूचना: निष्कृय";
+                if (swBadge) swBadge.classList.add("hidden");
+            }
+        }
+
+        function sendSystemNotification(title, body) {
+            if (isBackgroundNotifyEnabled && "Notification" in window && Notification.permission === "granted") {
+                try {
+                    const notification = new Notification(title, {
+                        body: body,
+                        icon: "icon-192.png",
+                        tag: "school-bell-alert",
+                        renotify: true
+                    });
+
+                    notification.onclick = function() {
+                        window.focus();
+                        notification.close();
+                    };
+                } catch(e) { console.error(e); }
+            }
+        }
+
+        function togglePreBellOption(checked) {
+            isPreBellEnabled = checked;
+            localStorage.setItem(PRE_BELL_STORAGE_KEY, String(isPreBellEnabled));
+            sendScheduleToServiceWorker();
+        }
+
+        function testBackgroundNotificationAlert() {
+            if (!isBackgroundNotifyEnabled) {
+                toggleBackgroundNotifications();
+            } else {
+                triggerBellAudio(1);
+                showBellToast("🔔 परीक्षण सुचना पाठाइयो!", "पृष्ठभूमि घण्टी र म्यासेज प्रणाली ठीक छ।");
+                sendSystemNotification("🔔 घण्टी प्रणाली परीक्षण", "यो मङ्गल सिंह मा.वि. दैनिक कार्यतालिकाको परीक्षण म्यासेज हो।");
+            }
+        }
+
+        function toggleAudioMute() {
+            isAudioMuted = !isAudioMuted;
+            const icon = document.getElementById("audioIcon");
+            const mobileIcon = document.getElementById("mobileAudioIcon");
+            const text = document.getElementById("audioText");
+            const btn = document.getElementById("audioToggleBtn");
+
+            if (isAudioMuted) {
+                if (icon) icon.className = "fa-solid fa-volume-xmark";
+                if (mobileIcon) mobileIcon.className = "fa-solid fa-volume-xmark";
+                if (text) text.textContent = "घण्टी ध्वनी: बन्द";
+                if (btn) btn.className = "bg-slate-600 hover:bg-slate-700 text-white px-3 py-1.5 rounded-xl text-xs font-bold shadow transition flex items-center gap-1.5 border border-slate-500";
+            } else {
+                if (icon) icon.className = "fa-solid fa-volume-high";
+                if (mobileIcon) mobileIcon.className = "fa-solid fa-volume-high";
+                if (text) text.textContent = "घण्टी ध्वनी: सुचारु";
+                if (btn) btn.className = "bg-amber-500 hover:bg-amber-600 text-slate-900 px-3 py-1.5 rounded-xl text-xs font-bold shadow transition flex items-center gap-1.5 border border-amber-300";
+                getAudioContext();
+            }
+        }
+
+        function testBellTrigger(countOrType, title) {
+            getAudioContext();
+            triggerBellAudio(countOrType);
+            const bellMsg = countOrType === 'continuous' ? 'लगातार घण्टी बज्यो' : `${countOrType} पटक घण्टी बज्यो`;
+            showBellToast(`🔔 घण्टी परीक्षण: ${title}`, bellMsg);
+            sendSystemNotification(`🔔 घण्टी परीक्षण: ${title}`, bellMsg);
+        }
+
+        function showBellToast(title, desc) {
+            const toast = document.getElementById("bellToast");
+            document.getElementById("bellToastTitle").textContent = title;
+            document.getElementById("bellToastDesc").textContent = desc;
+            toast.classList.remove("hidden");
+
+            setTimeout(() => { hideBellToast(); }, 8000);
+        }
+
+        function hideBellToast() {
+            document.getElementById("bellToast").classList.add("hidden");
+        }
+
+        function populateTeacherDropdown() {
+            const teacherSet = new Set();
+            routineData.forEach(row => {
+                ["p1", "p2", "p3", "p4", "p5", "p6", "p7"].forEach(pKey => {
+                    if (row[pKey] && row[pKey].tr) {
+                        row[pKey].tr.split('+').forEach(t => teacherSet.add(t.trim()));
+                    }
+                });
+            });
+
+            const sortedTeachers = Array.from(teacherSet).sort();
+            const selectEl = document.getElementById("teacherSelect");
+            const badgesContainer = document.getElementById("teacherBadgesContainer");
+
+            selectEl.innerHTML = `<option value="NONE">-- कुनै शिक्षक छान्नुहोस् --</option>`;
+            badgesContainer.innerHTML = "";
+
+            sortedTeachers.forEach(code => {
+                const opt = document.createElement("option");
+                opt.value = code;
+                opt.textContent = `शिक्षक सङ्केत: ${code}`;
+                selectEl.appendChild(opt);
+
+                const badge = document.createElement("button");
+                badge.onclick = () => {
+                    selectEl.value = code;
+                    highlightTeacher();
+                };
+                badge.className = "bg-indigo-50 hover:bg-indigo-100 text-indigo-900 font-bold border border-indigo-200 px-2.5 py-1 rounded-xl transition flex items-center gap-1 cursor-pointer shadow-sm";
+                badge.innerHTML = `<i class="fa-solid fa-user-check text-indigo-600"></i> ${code}`;
+                badgesContainer.appendChild(badge);
+            });
+        }
+
+        function highlightTeacher() {
+            selectedTeacher = document.getElementById("teacherSelect").value;
+            renderRoutine();
+        }
+
+        function selectTeacherFromBadge(teacherCode) {
+            if (!teacherCode) return;
+            const singleCode = teacherCode.split('+')[0].trim();
+            const selectEl = document.getElementById("teacherSelect");
+            selectEl.value = singleCode;
+            highlightTeacher();
+        }
+
+        function renderRoutine() {
+            const currentMins = getCurrentMinutes();
+            const activePeriod = getActivePeriod(currentMins);
+            const activePeriodId = activePeriod ? activePeriod.id : null;
+            
+            timePeriods.forEach(p => {
+                const th = document.getElementById(`th-${p.id}`);
+                if (th) {
+                    th.classList.remove('active-period-col');
+                }
+            });
+            
+            if (activePeriodId) {
+                const activeTh = document.getElementById(`th-${activePeriodId}`);
+                if (activeTh) {
+                    activeTh.classList.add('active-period-col');
+                }
+            }
+            
+            const selectedClass = document.getElementById("classSelect") ? document.getElementById("classSelect").value : "ALL";
+            const tbody = document.getElementById("routineTbody");
+            if (!tbody) return;
+            
+            tbody.innerHTML = "";
+            
+            const filteredRoutine = selectedClass === "ALL" 
+                ? routineData 
+                : routineData.filter(r => r.class === selectedClass);
+                
+            filteredRoutine.forEach((row, idx) => {
+                const tr = document.createElement("tr");
+                tr.className = idx % 2 === 0 ? "bg-white hover:bg-slate-50" : "bg-slate-50/70 hover:bg-slate-100";
+                
+                // Class Header Column
+                let html = `<td class="py-3 px-2 font-bold text-slate-900 border-r border-slate-200 bg-slate-100 sticky-col">${row.class === "Nursery" || row.class === "KG" ? row.class : "कक्षा " + row.class}</td>`;
+                
+                // Morning Assembly
+                const isAssemblyActive = activePeriodId === "assembly";
+                html += `<td class="py-2.5 px-2 text-[11px] border-r border-slate-200 ${isAssemblyActive ? 'active-period-cell' : 'bg-sky-50/50 text-sky-900'}">
+                    <span class="font-bold block">प्रार्थना सभा</span>
+                </td>`;
+                
+                // Periods 1 to 4
+                ["p1", "p2", "p3", "p4"].forEach(pKey => {
+                    const cellData = row[pKey];
+                    const isActive = activePeriodId === pKey;
+                    const isTeacherMatch = selectedTeacher !== "NONE" && cellData && cellData.tr && cellData.tr.split('+').map(s=>s.trim()).includes(selectedTeacher);
+                    
+                    let cellClass = "py-2.5 px-2 border-r border-slate-200 ";
+                    if (isActive) {
+                        cellClass += "active-period-cell ";
+                    } else if (isTeacherMatch) {
+                        cellClass += "highlighted-teacher ";
+                    }
+                    
+                    html += `<td class="${cellClass}">
+                        <span class="block font-bold text-slate-800 text-xs">${cellData ? cellData.sub : '-'}</span>
+                        <span class="inline-block mt-0.5 text-[10px] font-semibold text-slate-600 bg-slate-200/80 hover:bg-indigo-200 px-1.5 py-0.5 rounded cursor-pointer" onclick="selectTeacherFromBadge('${cellData ? cellData.tr : ''}')">${cellData ? cellData.tr : ''}</span>
+                    </td>`;
+                });
+                
+                // Tiffin Break
+                const isTiffinActive = activePeriodId === "tiffin";
+                html += `<td class="py-2.5 px-2 text-[11px] border-r border-slate-200 ${isTiffinActive ? 'active-period-cell' : 'bg-amber-50/60 text-amber-900'}">
+                    <span class="font-bold block">टिफिन खाजा</span>
+                </td>`;
+                
+                // Periods 5 to 7
+                ["p5", "p6", "p7"].forEach(pKey => {
+                    const cellData = row[pKey];
+                    const isActive = activePeriodId === pKey;
+                    const isTeacherMatch = selectedTeacher !== "NONE" && cellData && cellData.tr && cellData.tr.split('+').map(s=>s.trim()).includes(selectedTeacher);
+                    
+                    let cellClass = "py-2.5 px-2 border-r border-slate-200 ";
+                    if (isActive) {
+                        cellClass += "active-period-cell ";
+                    } else if (isTeacherMatch) {
+                        cellClass += "highlighted-teacher ";
+                    }
+                    
+                    html += `<td class="${cellClass}">
+                        <span class="block font-bold text-slate-800 text-xs">${cellData ? cellData.sub : '-'}</span>
+                        <span class="inline-block mt-0.5 text-[10px] font-semibold text-slate-600 bg-slate-200/80 hover:bg-indigo-200 px-1.5 py-0.5 rounded cursor-pointer" onclick="selectTeacherFromBadge('${cellData ? cellData.tr : ''}')">${cellData ? cellData.tr : ''}</span>
+                    </td>`;
+                });
+                
+                tr.innerHTML = html;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function updateTimerOnly() {
+            const currentMins = getCurrentMinutes();
+            const activePeriod = getActivePeriod(currentMins);
+            const titleEl = document.getElementById("currentPeriodTitle");
+            const timerContainer = document.getElementById("periodTimerContainer");
+            const countdownEl = document.getElementById("periodCountdown");
+
+            if (activePeriod) {
+                titleEl.textContent = `${activePeriod.name} चलिरहेको छ`;
+                timerContainer.classList.remove("hidden");
+
+                let remainingSecs;
+                if (isSimulationMode) {
+                    remainingSecs = (activePeriod.end - currentMins) * 60;
+                } else {
+                    const now = new Date();
+                    const endSecs = activePeriod.end * 60;
+                    const nowSecs = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
+                    remainingSecs = Math.max(0, endSecs - nowSecs);
+                }
+                const m = Math.floor(remainingSecs / 60);
+                const s = Math.floor(remainingSecs % 60);
+                countdownEl.textContent = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+
+                if (isPreBellEnabled && remainingSecs <= 120 && remainingSecs > 115 && !preBellFiredPeriods.has(activePeriod.id)) {
+                    preBellFiredPeriods.add(activePeriod.id);
+                    triggerBellAudio(2);
+                    showBellToast(`🔔 २ मिनेट पूर्व-सूचना!`, `${activePeriod.name} अब २ मिनेटमा सकिँदैछ।`);
+                    sendSystemNotification(`🔔 २ मिनेट बाँकी: ${activePeriod.name}`, `कक्षा समापन र अर्को कक्षाको तयारी गर्नुहोस्।`);
+                }
+
+                if (lastRungPeriodId !== activePeriod.id) {
+                    lastRungPeriodId = activePeriod.id;
+                    triggerBellAudio(activePeriod.bellCount);
+                    
+                    const bellMsg = activePeriod.bellCount === 'continuous' ? 'लगातार घण्टी बज्यो' : `${activePeriod.bellCount} पटक घण्टी बज्यो`;
+                    showBellToast(`🔔 ${activePeriod.name} सुरु भयो!`, bellMsg);
+                    sendSystemNotification(`🔔 ${activePeriod.name} सुरु भयो!`, `समय: ${bellMsg}। मङ्गल सिंह मा.वि.`);
+                }
+            } else {
+                timerContainer.classList.add("hidden");
+                if (currentMins < 10 * 60) {
+                    titleEl.textContent = "विद्यालय सुरु हुन बाँकी छ (प्रार्थना सभा सुरु: १०:०० AM)";
+                } else if (currentMins >= 16 * 60) {
+                    titleEl.textContent = "आजको विद्यालय समय समाप्त भइसकेको छ (सकिने समय: १६:००)";
+                    if (lastRungPeriodId !== 'dismissal' && currentMins === 16 * 60) {
+                        lastRungPeriodId = 'dismissal';
+                        triggerBellAudio('continuous');
+                        showBellToast("🔔 विद्यालय समय समाप्त भयो!", "लगातार छुट्टीको घण्टी बज्यो।");
+                        sendSystemNotification("🔔 छुट्टीको घण्टी बज्यो!", "आजका सम्पूर्ण कक्षाहरू सकिएका छन्।");
+                    }
+                } else {
+                    titleEl.textContent = "कक्षा छुट्टै समय";
+                }
+            }
+
+            // Check if period changed to trigger full routine table update
+            if (lastActivePeriodId !== (activePeriod ? activePeriod.id : null)) {
+                lastActivePeriodId = activePeriod ? activePeriod.id : null;
+                renderRoutine();
+            }
+        }
+
+        function toggleSimMode(enable) {
+            isSimulationMode = enable;
+            const resetBtn = document.getElementById("resetSimBtn");
+            if (enable) {
+                if (resetBtn) resetBtn.classList.remove("hidden");
+            } else {
+                if (resetBtn) resetBtn.classList.add("hidden");
+                const now = new Date();
+                const nowMins = now.getHours() * 60 + now.getMinutes();
+                document.getElementById("timeSlider").value = nowMins;
+                updateSimulatedTime(nowMins);
+            }
+            renderRoutine();
+            updateTimerOnly();
+        }
+
+        function updateSimulatedTime(val) {
+            isSimulationMode = true;
+            simulatedMinutes = parseInt(val);
+            
+            const hours = Math.floor(simulatedMinutes / 60);
+            const mins = simulatedMinutes % 60;
+            const timeStr = `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
+            
+            document.getElementById("sliderTimeDisplay").textContent = timeStr;
+            const resetBtn = document.getElementById("resetSimBtn");
+            if (resetBtn) resetBtn.classList.remove("hidden");
+            
+            renderRoutine();
+            updateTimerOnly();
+        }
+
+        function updateClock() {
+            const now = new Date();
+            const h = now.getHours().toString().padStart(2, '0');
+            const m = now.getMinutes().toString().padStart(2, '0');
+            const s = now.getSeconds().toString().padStart(2, '0');
+            
+            const clockEl = document.getElementById("liveClock");
+            if (clockEl) {
+                clockEl.textContent = `${h}:${m}:${s}`;
+            }
+
+            if (!isSimulationMode) {
+                updateTimerOnly();
+            }
+        }
+
+        // पहिले नै "पृष्ठभूमि सूचना सक्रिय" गरिसकेको भए, एप फेरि खोल्दा/रिफ्रेस
+        // हुँदा पनि त्यो अवस्था स्वतः पुनर्स्थापित गर्ने (permission अझै दिइएको छ भने)।
+        function restoreBackgroundNotifyStateOnLoad() {
+            if (!isBackgroundNotifyEnabled) return;
+
+            if (!("Notification" in window) || Notification.permission !== "granted") {
+                // अनुमति बीचमै हटाइएको रहेछ भने सेटिङ पनि सफा गर्ने
+                isBackgroundNotifyEnabled = false;
+                localStorage.setItem(BG_NOTIFY_STORAGE_KEY, "false");
+                updateNotifyButtonUI();
+                return;
+            }
+
+            updateNotifyButtonUI();
+            requestWakeLock();
+            registerPeriodicBellSync();
+            // sendScheduleToServiceWorker() लाई navigator.serviceWorker.ready भित्रबाट
+            // (registerServiceWorker मार्फत) पनि कल गरिन्छ; यहाँ फेरि पक्का गर्ने।
+            navigator.serviceWorker && navigator.serviceWorker.ready.then(() => {
+                sendScheduleToServiceWorker();
+            });
+        }
+
+        // एप पृष्ठभूमिबाट फेरि देखिने (foreground) हुनासाथ Service Worker लाई
+        // ताजा schedule/अवस्था पठाउने र Wake Lock पुनः लिने (ट्याब लुक्दा यो स्वतः जान्छ)।
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') {
+                if (isBackgroundNotifyEnabled) {
+                    sendScheduleToServiceWorker();
+                    requestWakeLock();
+                }
+            } else if (isBackgroundNotifyEnabled) {
+                // पृष्ठभूमिमा जाँदा एकपटक थप wake-trigger अनुरोध गर्ने (best-effort)
+                registerPeriodicBellSync();
+            }
+        });
+
+        // Initialize App on Window Load
+        window.onload = function() {
+            if (isRunningStandalone()) {
+                const pwaBtn = document.getElementById('pwaInstallBtn');
+                if (pwaBtn) pwaBtn.classList.add('hidden');
+            }
+            registerServiceWorker();
+            populateTeacherDropdown();
+            renderRoutine();
+            updateClock();
+            setInterval(updateClock, 1000);
+
+            const preBellCheckbox = document.getElementById('preBellCheck');
+            if (preBellCheckbox) preBellCheckbox.checked = isPreBellEnabled;
+
+            restoreBackgroundNotifyStateOnLoad();
+
+            document.body.addEventListener('click', function() {
+                getAudioContext();
+            }, { once: true });
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,52 @@
+{
+  "id": "/",
+  "name": "मङ्गल सिंह मा.वि. दैनिक कक्षा कार्यतालिका",
+  "short_name": "MS Routine",
+  "description": "दैनिक कक्षा कार्यतालिका र स्वचालित घण्टी प्रणाली - मङ्गल सिंह माध्यमिक विद्यालय, केचना, मोरङ",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
+  "orientation": "portrait-primary",
+  "background_color": "#f1f5f9",
+  "theme_color": "#1e1b4b",
+  "lang": "ne",
+  "dir": "ltr",
+  "categories": ["education", "productivity", "utilities"],
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-maskable-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "आजको कार्यतालिका",
+      "short_name": "रुटिन",
+      "description": "आजको कक्षा कार्यतालिका सिधै हेर्नुहोस्",
+      "url": "./index.html#routineTableContainer",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
+    }
+  ],
+  "prefer_related_applications": false
+}
