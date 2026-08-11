@@ -1,0 +1,81 @@
+name: Build Android APK
+
+# यो workflow ले Android Studio/Node.js/JDK केही पनि आफ्नो कम्प्युटरमा
+# इन्स्टल नगरिकनै — GitHub को free सर्भरमा नै — पूरा APK बनाइदिन्छ।
+# "main" ब्रान्चमा जहिले पनि केही push गर्दा (वा तल्लो "Run workflow" बटनबाट
+# म्यानुअल चलाउँदा) यो स्वतः चल्छ।
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch: {}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Repo निकाल्ने
+        uses: actions/checkout@v4
+
+      - name: Node.js सेटअप
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Java (JDK) सेटअप
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: npm प्याकेज इन्स्टल
+        run: npm install
+
+      - name: Android platform थप्ने (android/ फोल्डर स्वतः बन्छ)
+        run: npx cap add android
+
+      - name: www/ को हालको content Android प्रोजेक्टमा sync गर्ने
+        run: npx cap sync android
+
+      - name: AndroidManifest.xml मा घण्टीका लागि चाहिने permission थप्ने
+        run: |
+          MANIFEST=android/app/src/main/AndroidManifest.xml
+          sed -i '/<application/i \
+              <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />\n\
+              <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />\n\
+              <uses-permission android:name="android.permission.USE_EXACT_ALARM" />\n\
+              <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />\n\
+              <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />' "$MANIFEST"
+          cat "$MANIFEST"
+
+      - name: घण्टीको आवाज फाइल भए राख्ने (नभए default sound प्रयोग हुन्छ)
+        run: |
+          mkdir -p android/app/src/main/res/raw
+          if [ -f android-sound/bell.wav ]; then
+            cp android-sound/bell.wav android/app/src/main/res/raw/bell.wav
+            echo "bell.wav राखियो — custom घण्टी आवाज प्रयोग हुनेछ।"
+          else
+            echo "android-sound/bell.wav फेला परेन — Android को default notification sound प्रयोग हुनेछ (एप अझै पनि पूर्ण रूपमा चल्छ)।"
+          fi
+
+      - name: APK Build गर्ने (Debug — सिधै install गर्न मिल्ने)
+        working-directory: android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug
+
+      - name: APK लाई Artifact को रूपमा अपलोड गर्ने
+        uses: actions/upload-artifact@v4
+        with:
+          name: ms-routine-app
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+
+      - name: स्थायी Download लिङ्कका लागि Release बनाउने/अपडेट गर्ने
+        uses: ncipollo/release-action@v1
+        with:
+          tag: latest-build
+          name: "MS Routine — पछिल्लो APK"
+          allowUpdates: true
+          replacesArtifacts: true
+          artifacts: android/app/build/outputs/apk/debug/app-debug.apk
+          body: "यो APK स्वतः बनेको हो। फोनमा डाउनलोड गरी सिधै install गर्नुहोस्।"

@@ -1,0 +1,12 @@
+{
+  "appId": "np.edu.mangalsingh.routine",
+  "appName": "MS Routine",
+  "webDir": "www",
+  "plugins": {
+    "LocalNotifications": {
+      "smallIcon": "ic_stat_bell",
+      "iconColor": "#1e1b4b",
+      "sound": "bell.wav"
+    }
+  }
+}

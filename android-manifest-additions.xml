@@ -1,0 +1,24 @@
+<!--
+    यो पूरा फाइल होइन — केवल थप्नुपर्ने अंश हो।
+    `npx cap add android` चलाएपछि बन्ने android/app/src/main/AndroidManifest.xml
+    फाइल भित्र <manifest> ट्यागको ठ्याक्कै तल यी <uses-permission> हरू थप्नुहोस्
+    (application ट्यागभन्दा माथि, manifest ट्यागभित्र)।
+-->
+
+<!-- Android 12 (API 31)+ मा ठ्याक्कै-समयको अलार्मका लागि अनिवार्य -->
+<uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+
+<!-- Android 13 (API 33)+ मा notification देखाउन अनुमति चाहिन्छ -->
+<uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+<!-- फोन/एप निद्रामा गए पनि exact अलार्म ठ्याक्कै समयमा उठ्न मद्दत गर्छ -->
+<uses-permission android:name="android.permission.USE_EXACT_ALARM" />
+
+<!-- वैकल्पिक तर सिफारिस: फोन रिस्टार्ट भएपछि पनि AlarmManager जीवित रहन
+     boot-completed सुन्ने अनुमति (नोट तल README मा हेर्नुहोस् — Android ले
+     reboot मा सबै scheduled exact alarm मेट्छ, त्यसैले प्रयोगकर्ताले फोन
+     रिस्टार्ट पछि एपलाई एकपटक खोल्नैपर्छ ताकि alarms पुनः तय होस्।) -->
+<uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+
+<!-- Battery optimisation ले exact alarm लाई ढिलो नगरोस् भनेर -->
+<uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />

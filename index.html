@@ -925,6 +925,24 @@
         }
 
         function toggleBackgroundNotifications() {
+            // ---- Native APK मोड (Capacitor + Local Notifications) ----
+            // यहाँ OS-level exact alarm प्रयोग हुन्छ, त्यसैले फोन लक/एप बन्द भए
+            // पनि साँच्चैको घण्टी-आवाज बज्छ। ब्राउजर/PWA मोडमा window.NativeBell.isNative()
+            // false हुन्छ, त्यसैले तलको पुरानो Web Notification बाटो नै चल्छ।
+            if (window.NativeBell && window.NativeBell.isNative()) {
+                isBackgroundNotifyEnabled = !isBackgroundNotifyEnabled;
+                localStorage.setItem(BG_NOTIFY_STORAGE_KEY, String(isBackgroundNotifyEnabled));
+                updateNotifyButtonUI();
+                if (isBackgroundNotifyEnabled) {
+                    window.NativeBell.enable();
+                    showBellToast("पृष्ठभूमि सूचना सुचारु भयो!", "फोन लक/बन्द भए पनि तोकिएको समयमा साँच्चैको घण्टी बज्नेछ — निष्क्रिय नगरेसम्म।");
+                } else {
+                    window.NativeBell.disable();
+                    showBellToast("पृष्ठभूमि सूचना बन्द गरियो", "तोकिएको समयको घण्टी अब बज्दैन।");
+                }
+                return;
+            }
+
             if (!("Notification" in window)) {
                 showCustomModal("अनुमति छैन", "तपाईँको ब्राउजरमा प्रणाली सूचना (System Notification) सपोर्ट छैन।", "fa-solid fa-triangle-exclamation text-amber-500");
                 return;
@@ -1308,6 +1326,16 @@
         function restoreBackgroundNotifyStateOnLoad() {
             if (!isBackgroundNotifyEnabled) return;
 
+            // Native APK मोड: पहिले नै सक्रिय गरिसकेको भए, एप फेरि खोल्दा अलार्महरू
+            // ताजा गर्ने। (फोन रिस्टार्ट पछि पनि Capacitor को built-in
+            // LocalNotificationRestoreReceiver ले एप नखोलिकनै स्वतः रिस्टोर गर्छ —
+            // यो थप सुरक्षाका लागि मात्र हो।)
+            if (window.NativeBell && window.NativeBell.isNative()) {
+                updateNotifyButtonUI();
+                window.NativeBell.enable();
+                return;
+            }
+
             if (!("Notification" in window) || Notification.permission !== "granted") {
                 // अनुमति बीचमै हटाइएको रहेछ भने सेटिङ पनि सफा गर्ने
                 isBackgroundNotifyEnabled = false;
@@ -1362,5 +1390,7 @@
             }, { once: true });
         };
     </script>
+    <!-- यो APK (native app) भित्र मात्र सक्रिय हुन्छ; ब्राउजर/PWA मोडमा window.Capacitor नभएकोले चुपचाप ignore हुन्छ -->
+    <script src="native-bell.js"></script>
 </body>
 </html>
